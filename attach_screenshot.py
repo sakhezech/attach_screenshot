@@ -59,15 +59,16 @@ def attach_picture_to_note(
     )
 
 
-def main(field: str) -> None:
+def attach_picture_to_last_updated_card(
+    filename: str, data: str, field: str
+) -> None:
     card_id = get_last_updated_card_id()
     note_id = get_note_id(card_id)
-
-    filename = f'{datetime.now()}_screenshot.png'
-    data = base64.standard_b64encode(sys.stdin.buffer.read()).decode()
 
     attach_picture_to_note(note_id, filename, data, field)
 
 
 if __name__ == '__main__':
-    main('Picture')
+    filename = f'{datetime.now()}_screenshot.png'
+    data = base64.standard_b64encode(sys.stdin.buffer.read()).decode()
+    attach_picture_to_last_updated_card(filename, data, 'Picture')
