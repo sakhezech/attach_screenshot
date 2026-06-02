@@ -1,3 +1,4 @@
+import argparse
 import base64
 import sys
 from datetime import datetime
@@ -69,6 +70,12 @@ def attach_picture_to_last_updated_card(
 
 
 if __name__ == '__main__':
+    parser = argparse.ArgumentParser()
+    parser.add_argument('field', help='note picture field name')
+    args = parser.parse_args()
+
     filename = f'{datetime.now()}_screenshot.png'
     data = base64.standard_b64encode(sys.stdin.buffer.read()).decode()
-    attach_picture_to_last_updated_card(filename, data, 'Picture')
+    field = args.field
+
+    attach_picture_to_last_updated_card(filename, data, field)
