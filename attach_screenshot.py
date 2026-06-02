@@ -77,10 +77,15 @@ def read_screenshot_data() -> str:
 
 def cli(argv: Sequence[str] | None = None) -> None:
     parser = argparse.ArgumentParser()
+    parser.add_argument(
+        '--ext',
+        default='png',
+        help='stdin screenshot format (defaults to png)',
+    )
     parser.add_argument('field', help='note picture field name')
     args = parser.parse_args(argv)
 
-    filename = f'{datetime.now()}_screenshot.png'
+    filename = f'{datetime.now()} screenshot.{args.ext}'
     data = read_screenshot_data()
     field = args.field
 
