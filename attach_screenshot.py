@@ -62,9 +62,7 @@ def attach_picture_to_note(
     )
 
 
-def attach_picture_to_last_updated_card(
-    filename: str, data: str, field: str
-) -> None:
+def attach_picture_to_last_card(filename: str, data: str, field: str) -> None:
     card_id = get_last_updated_card_id()
     note_id = get_note_id(card_id)
 
@@ -89,7 +87,7 @@ def cli(argv: Sequence[str] | None = None) -> None:
     data = read_screenshot_data()
     field = args.field
 
-    attach_picture_to_last_updated_card(filename, data, field)
+    attach_picture_to_last_card(filename, data, field)
 
 
 if __name__ == '__main__':
