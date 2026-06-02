@@ -4,6 +4,7 @@ import base64
 import sys
 from collections.abc import Sequence
 from datetime import datetime
+from pathlib import Path
 from typing import Any
 
 import httpx
@@ -39,8 +40,14 @@ def get_note_id(card_id: int) -> int:
 
 
 def attach_picture_to_note(
-    note_id: int, filename: str, data: str, field: str
+    note_id: int,
+    filename: str,
+    field: str,
+    data: str | None = None,
+    path: str | None = None,
 ) -> None:
+    if not ((data is None) ^ (path is None)):
+        raise Exception("'data' and 'path' are both set or unset")
     post_ankiconnect(
         {
             'action': 'updateNoteFields',
@@ -53,6 +60,7 @@ def attach_picture_to_note(
                         {
                             'filename': filename,
                             'data': data,
+                            'path': path,
                             'fields': [field],
                         }
                     ],
@@ -62,11 +70,13 @@ def attach_picture_to_note(
     )
 
 
-def attach_picture_to_last_card(filename: str, data: str, field: str) -> None:
+def attach_picture_to_last_card(
+    filename: str, field: str, data: str | None = None, path: str | None = None
+) -> None:
     card_id = get_last_updated_card_id()
     note_id = get_note_id(card_id)
 
-    attach_picture_to_note(note_id, filename, data, field)
+    attach_picture_to_note(note_id, filename, field, data, path)
 
 
 def read_screenshot_data() -> str:
@@ -76,6 +86,13 @@ def read_screenshot_data() -> str:
 def cli(argv: Sequence[str] | None = None) -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument(
+        '-f',
+        '--file',
+        type=Path,
+        default=Path('-'),
+        help='file path (defaults to stdin)',
+    )
+    parser.add_argument(
         '--ext',
         default='png',
         help='stdin screenshot format (defaults to png)',
@@ -83,11 +100,16 @@ def cli(argv: Sequence[str] | None = None) -> None:
     parser.add_argument('field', help='note picture field name')
     args = parser.parse_args(argv)
 
-    filename = f'{datetime.now()} screenshot.{args.ext}'
-    data = read_screenshot_data()
     field = args.field
+    data = path = None
+    if args.file == Path('-'):
+        filename = f'{datetime.now()} screenshot.{args.ext}'
+        data = read_screenshot_data()
+    else:
+        filename = args.file.name
+        path = str(args.file.resolve())
 
-    attach_picture_to_last_card(filename, data, field)
+    attach_picture_to_last_card(filename, field, data, path)
 
 
 if __name__ == '__main__':
