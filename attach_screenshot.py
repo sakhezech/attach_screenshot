@@ -1,17 +1,20 @@
 #!/usr/bin/env python3
 import argparse
 import base64
+import json
 import sys
+import urllib.request
 from collections.abc import Sequence
 from datetime import datetime
 from pathlib import Path
 from typing import Any
 
-import httpx
-
 
 def post_ankiconnect(data: dict[str, Any]) -> Any:
-    r = httpx.post('http://localhost:8765/', json=data).json()
+    with urllib.request.urlopen(
+        'http://localhost:8765', data=json.dumps(data).encode()
+    ) as response:
+        r = json.loads(response.read())
     if r['error'] is not None:
         raise Exception(r['error'])
     return r['result']
