@@ -70,13 +70,17 @@ def attach_picture_to_last_updated_card(
     attach_picture_to_note(note_id, filename, data, field)
 
 
+def read_screenshot_data() -> str:
+    return base64.standard_b64encode(sys.stdin.buffer.read()).decode()
+
+
 def cli(argv: Sequence[str] | None = None) -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument('field', help='note picture field name')
     args = parser.parse_args(argv)
 
     filename = f'{datetime.now()}_screenshot.png'
-    data = base64.standard_b64encode(sys.stdin.buffer.read()).decode()
+    data = read_screenshot_data()
     field = args.field
 
     attach_picture_to_last_updated_card(filename, data, field)
