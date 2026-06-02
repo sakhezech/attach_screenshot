@@ -10,14 +10,14 @@ from typing import Any
 import httpx
 
 
-def post_ankiconnect(query: dict[str, Any]) -> Any:
-    r = httpx.post('http://localhost:8765/', json=query).json()
+def post_ankiconnect(data: dict[str, Any]) -> Any:
+    r = httpx.post('http://localhost:8765/', json=data).json()
     if r['error'] is not None:
         raise Exception(r['error'])
     return r['result']
 
 
-def get_last_updated_card_id() -> int:
+def get_last_added_card_id() -> int:
     return post_ankiconnect(
         {
             'action': 'findNotes',
@@ -73,7 +73,7 @@ def attach_picture_to_note(
 def attach_picture_to_last_card(
     filename: str, field: str, data: str | None = None, path: str | None = None
 ) -> None:
-    card_id = get_last_updated_card_id()
+    card_id = get_last_added_card_id()
     note_id = get_note_id(card_id)
 
     attach_picture_to_note(note_id, filename, field, data, path)
