@@ -2,6 +2,7 @@
 import argparse
 import base64
 import json
+import subprocess
 import sys
 import urllib.request
 from collections.abc import Sequence
@@ -86,6 +87,10 @@ def read_screenshot_data() -> str:
     return base64.standard_b64encode(sys.stdin.buffer.read()).decode()
 
 
+def send_notification(summary: str, body: str) -> None:
+    subprocess.run(['notify-send', summary, body])
+
+
 def cli(argv: Sequence[str] | None = None) -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument(
@@ -100,6 +105,11 @@ def cli(argv: Sequence[str] | None = None) -> None:
         default='png',
         help='stdin screenshot format (defaults to png)',
     )
+    parser.add_argument(
+        '--notify',
+        action='store_true',
+        help='send a notification via notify-send',
+    )
     parser.add_argument('field', help='note picture field name')
     args = parser.parse_args(argv)
 
@@ -112,7 +122,15 @@ def cli(argv: Sequence[str] | None = None) -> None:
         filename = args.file.name
         path = str(args.file.resolve())
 
-    attach_picture_to_last_card(filename, field, data, path)
+    try:
+        attach_picture_to_last_card(filename, field, data, path)
+    except Exception as err:
+        if args.notify:
+            send_notification('ERROR', f'Screenshot not attached!\n{err!r}')
+        raise err
+    else:
+        if args.notify:
+            send_notification('SUCCESS', 'Screenshot attached!')
 
 
 if __name__ == '__main__':
