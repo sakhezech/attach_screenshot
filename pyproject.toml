@@ -11,6 +11,9 @@ dependencies = [
 [project.optional-dependencies]
 dev = ['ruff', 'faterunner']
 
+[project.scripts]
+attach_screenshot = 'attach_screenshot:cli'
+
 [tool.ruff]
 line-length = 79
 [tool.ruff.format]
