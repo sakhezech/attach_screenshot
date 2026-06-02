@@ -1,6 +1,7 @@
 import argparse
 import base64
 import sys
+from collections.abc import Sequence
 from datetime import datetime
 from typing import Any
 
@@ -69,13 +70,17 @@ def attach_picture_to_last_updated_card(
     attach_picture_to_note(note_id, filename, data, field)
 
 
-if __name__ == '__main__':
+def cli(argv: Sequence[str] | None = None) -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument('field', help='note picture field name')
-    args = parser.parse_args()
+    args = parser.parse_args(argv)
 
     filename = f'{datetime.now()}_screenshot.png'
     data = base64.standard_b64encode(sys.stdin.buffer.read()).decode()
     field = args.field
 
     attach_picture_to_last_updated_card(filename, data, field)
+
+
+if __name__ == '__main__':
+    cli(None)
