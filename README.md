@@ -50,8 +50,21 @@ options:
 
 ## Installation
 
+Via `pipx`.
+
 ```console
 pipx install git+https://github.com/sakhezech/attach_screenshot
-# or
+```
+
+Via `uv`.
+
+```console
 uv tool install git+https://github.com/sakhezech/attach_screenshot
+```
+
+Since the script has no external dependencies, just download it.
+
+```console
+curl -LO https://raw.githubusercontent.com/sakhezech/attach_screenshot/refs/heads/main/attach_screenshot.py
+chmod +x attach_screenshot.py
 ```
