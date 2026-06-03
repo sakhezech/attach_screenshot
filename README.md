@@ -32,6 +32,22 @@ where `Picture` is the image field.
 >
 > from [AnkiConnect README](https://git.sr.ht/~foosoft/anki-connect/tree/de6e6e1b8aaf4ae195eb1d1ff6db5409b99b2a3e/item/README.md#codeupdatenotefieldscode)
 
+### More Options
+
+```console
+$ attach_screenshot --help
+usage: attach_screenshot [-h] [-f FILE] [--ext EXT] [--notify] field
+
+positional arguments:
+  field            note picture field name
+
+options:
+  -h, --help       show this help message and exit
+  -f, --file FILE  file path (defaults to stdin)
+  --ext EXT        stdin screenshot format (defaults to png)
+  --notify         send a notification via notify-send
+```
+
 ## Installation
 
 ```console
