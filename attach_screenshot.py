@@ -22,7 +22,7 @@ def post_ankiconnect(data: dict[str, Any]) -> Any:
 
 
 def get_last_added_card_id() -> int:
-    return post_ankiconnect(
+    result = post_ankiconnect(
         {
             'action': 'findNotes',
             'version': 5,
@@ -30,7 +30,10 @@ def get_last_added_card_id() -> int:
                 'query': 'added:1',
             },
         }
-    )[-1]
+    )
+    if not result:
+        raise Exception('no recently added cards')
+    return result[-1]
 
 
 def get_note_id(card_id: int) -> int:
