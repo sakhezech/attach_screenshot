@@ -11,9 +11,12 @@ from pathlib import Path
 from typing import Any
 
 
-def post_ankiconnect(data: dict[str, Any]) -> Any:
+def post_ankiconnect(action: str, params: dict[str, Any]) -> Any:
     with urllib.request.urlopen(
-        'http://localhost:8765', data=json.dumps(data).encode()
+        'http://localhost:8765/',
+        data=json.dumps(
+            {'action': action, 'version': 5, 'params': params}
+        ).encode(),
     ) as response:
         r = json.loads(response.read())
     if r['error'] is not None:
@@ -22,28 +25,14 @@ def post_ankiconnect(data: dict[str, Any]) -> Any:
 
 
 def get_last_added_card_id() -> int:
-    result = post_ankiconnect(
-        {
-            'action': 'findNotes',
-            'version': 5,
-            'params': {
-                'query': 'added:1',
-            },
-        }
-    )
+    result = post_ankiconnect('findNotes', {'query': 'added:1'})
     if not result:
         raise Exception('no recently added cards')
     return result[-1]
 
 
 def get_note_id(card_id: int) -> int:
-    return post_ankiconnect(
-        {
-            'action': 'notesInfo',
-            'version': 5,
-            'params': {'notes': [card_id]},
-        },
-    )[0]['noteId']
+    return post_ankiconnect('notesInfo', {'notes': [card_id]})[0]['noteId']
 
 
 def attach_picture_to_note(
@@ -56,24 +45,21 @@ def attach_picture_to_note(
     if not ((data is None) ^ (path is None)):
         raise Exception("'data' and 'path' are both set or unset")
     post_ankiconnect(
+        'updateNoteFields',
         {
-            'action': 'updateNoteFields',
-            'version': 5,
-            'params': {
-                'note': {
-                    'id': note_id,
-                    'fields': {},
-                    'picture': [
-                        {
-                            'filename': filename,
-                            'data': data,
-                            'path': path,
-                            'fields': [field],
-                        }
-                    ],
-                }
-            },
-        }
+            'note': {
+                'id': note_id,
+                'fields': {},
+                'picture': [
+                    {
+                        'filename': filename,
+                        'data': data,
+                        'path': path,
+                        'fields': [field],
+                    }
+                ],
+            }
+        },
     )
 
 
