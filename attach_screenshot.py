@@ -44,6 +44,9 @@ def attach_picture_to_note(
 ) -> None:
     if not ((data is None) ^ (path is None)):
         raise Exception("'data' and 'path' are both set or unset")
+    if data is not None and not data:
+        raise Exception('no screenshot data')
+
     post_ankiconnect(
         'updateNoteFields',
         {
