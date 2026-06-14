@@ -2,7 +2,7 @@
 
 A script for quickly attaching screenshots to Anki notes.
 
-Attaches the screenshot to the last added card. Requires [AnkiConnect](https://ankiweb.net/shared/info/2055492159).
+Attaches the screenshot to the last added note. Requires [AnkiConnect](https://ankiweb.net/shared/info/2055492159).
 
 1. Mine the word you want using [Yomitan](https://yomitan.wiki/).
 2. Attach an image by running your screenshot script (preferably with a keybind).
@@ -11,19 +11,26 @@ Automation removes friction.
 
 ## Usage
 
-Pipe the screenshot into the program
+Pipe the screenshot into the program.
 
-```console
+```bash
 grimblast save area - | attach_screenshot Picture
 ```
 
-or, if your screenshot utility can't write to stdout, you can save the screenshot into a temporary directory and attach the last added file
+If your screenshot utility can't write to stdout, you can save the screenshot into a temporary directory and attach the last added file.
 
-```console
+```bash
 ls -t /path/to/directory/* | head -1 | xargs -I {} attach_screenshot --file {} Picture
 ```
 
-where `Picture` is the image field.
+Duplicate the screenshot from the second-to-last note.
+
+```bash
+grimblast save area - | attach_screenshot Picture
+attach_screenshot --duplicate Picture
+```
+
+Where `Picture` is the image field.
 
 > [!WARNING]
 >
@@ -36,7 +43,7 @@ where `Picture` is the image field.
 
 ```console
 $ attach_screenshot --help
-usage: attach_screenshot [-h] [-f FILE] [--ext EXT] [--notify] field
+usage: attach_screenshot [-h] [-f FILE] [-d] [--ext EXT] [--notify] field
 
 positional arguments:
   field            note picture field name
@@ -44,6 +51,7 @@ positional arguments:
 options:
   -h, --help       show this help message and exit
   -f, --file FILE  file path (defaults to stdin)
+  -d, --duplicate  duplicate field from the second-to-last note
   --ext EXT        stdin screenshot format (defaults to png)
   --notify         send a notification via notify-send
 ```
@@ -52,19 +60,19 @@ options:
 
 Via `pipx`.
 
-```console
+```bash
 pipx install git+https://github.com/sakhezech/attach_screenshot
 ```
 
 Via `uv`.
 
-```console
+```bash
 uv tool install git+https://github.com/sakhezech/attach_screenshot
 ```
 
 Since the script has no external dependencies, just download it.
 
-```console
+```bash
 curl -LO https://raw.githubusercontent.com/sakhezech/attach_screenshot/refs/heads/main/attach_screenshot.py
 chmod +x attach_screenshot.py
 ```
