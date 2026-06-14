@@ -141,8 +141,9 @@ def cli(argv: Sequence[str] | None = None) -> None:
         else:
             attach_picture_to_last_note(filename, field, data, path)
     except Exception as err:
+        msg = ' '.join(str(v) for v in err.args) if err.args else repr(err)
         if args.notify:
-            send_notification('ERROR', f'Screenshot not attached!\n{err!r}')
+            send_notification('ERROR', f'Screenshot not attached!\n{msg}')
         raise err
     else:
         if args.notify:
