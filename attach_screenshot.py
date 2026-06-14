@@ -11,7 +11,7 @@ from pathlib import Path
 from typing import Any
 
 
-def post_ankiconnect(action: str, params: dict[str, Any]) -> Any:
+def _post_ankiconnect(action: str, params: dict[str, Any]) -> Any:
     with urllib.request.urlopen(
         'http://localhost:8765/',
         data=json.dumps(
@@ -24,18 +24,25 @@ def post_ankiconnect(action: str, params: dict[str, Any]) -> Any:
     return r['result']
 
 
-def get_last_added_card_id() -> int:
-    result = post_ankiconnect('findNotes', {'query': 'added:1'})
+def _get_recently_added_note_ids() -> Sequence[int]:
+    result = _post_ankiconnect('findNotes', {'query': 'added:1'})
     if not result:
-        raise Exception('no recently added cards')
-    return result[-1]
+        raise Exception('no recently added notes')
+    result.sort()
+    return result
 
 
-def get_note_id(card_id: int) -> int:
-    return post_ankiconnect('notesInfo', {'notes': [card_id]})[0]['noteId']
+def _get_note_info(note_id: int) -> dict[str, Any]:
+    return _post_ankiconnect('notesInfo', {'notes': [note_id]})[0]
 
 
-def attach_picture_to_note(
+def _update_note_fields(note_id: int, fields: dict[str, Any]) -> None:
+    return _post_ankiconnect(
+        'updateNoteFields', {'note': {'id': note_id, 'fields': fields}}
+    )
+
+
+def _attach_picture_to_note(
     note_id: int,
     filename: str,
     field: str,
@@ -47,7 +54,7 @@ def attach_picture_to_note(
     if data is not None and not data:
         raise Exception('no screenshot data')
 
-    post_ankiconnect(
+    _post_ankiconnect(
         'updateNoteFields',
         {
             'note': {
@@ -66,13 +73,17 @@ def attach_picture_to_note(
     )
 
 
-def attach_picture_to_last_card(
+def attach_picture_to_last_note(
     filename: str, field: str, data: str | None = None, path: str | None = None
 ) -> None:
-    card_id = get_last_added_card_id()
-    note_id = get_note_id(card_id)
+    note_id = _get_recently_added_note_ids()[-1]
+    _attach_picture_to_note(note_id, filename, field, data, path)
 
-    attach_picture_to_note(note_id, filename, field, data, path)
+
+def duplicate_field_to_last_note(field: str) -> None:
+    *_, second_id, last_id = _get_recently_added_note_ids()
+    value = _get_note_info(second_id)['fields'][field]['value']
+    _update_note_fields(last_id, {field: value})
 
 
 def read_screenshot_data() -> str:
@@ -93,6 +104,12 @@ def cli(argv: Sequence[str] | None = None) -> None:
         help='file path (defaults to stdin)',
     )
     parser.add_argument(
+        '-d',
+        '--duplicate',
+        action='store_true',
+        help='duplicate field from the second-to-last note',
+    )
+    parser.add_argument(
         '--ext',
         default='png',
         help='stdin screenshot format (defaults to png)',
@@ -106,8 +123,9 @@ def cli(argv: Sequence[str] | None = None) -> None:
     args = parser.parse_args(argv)
 
     field = args.field
+    duplicate = args.duplicate
     data = path = None
-    if args.file == Path('-'):
+    if args.file == Path('-') and not duplicate:
         filename = f'{datetime.now()} screenshot.{args.ext}'
         data = read_screenshot_data()
     else:
@@ -115,7 +133,10 @@ def cli(argv: Sequence[str] | None = None) -> None:
         path = str(args.file.resolve())
 
     try:
-        attach_picture_to_last_card(filename, field, data, path)
+        if duplicate:
+            duplicate_field_to_last_note(field)
+        else:
+            attach_picture_to_last_note(filename, field, data, path)
     except Exception as err:
         if args.notify:
             send_notification('ERROR', f'Screenshot not attached!\n{err!r}')
