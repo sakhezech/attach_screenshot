@@ -124,9 +124,12 @@ def cli(argv: Sequence[str] | None = None) -> None:
 
     field = args.field
     duplicate = args.duplicate
+    ext = args.ext
     data = path = None
     if args.file == Path('-') and not duplicate:
-        filename = f'{datetime.now()} screenshot.{args.ext}'
+        filename = (
+            f'Screenshot{datetime.now().strftime("%Y%m%d%H%M%S%f")}.{ext}'
+        )
         data = read_screenshot_data()
     else:
         filename = args.file.name
