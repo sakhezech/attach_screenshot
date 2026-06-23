@@ -36,10 +36,13 @@ def _get_note_info(note_id: int) -> dict[str, Any]:
     return _post_ankiconnect('notesInfo', {'notes': [note_id]})[0]
 
 
-def _update_note_fields(note_id: int, fields: dict[str, Any]) -> None:
-    return _post_ankiconnect(
-        'updateNoteFields', {'note': {'id': note_id, 'fields': fields}}
-    )
+def _update_note_fields_and_tags(
+    note_id: int, fields: dict[str, Any], tags: Collection[str] | None = None
+) -> None:
+    params = {'note': {'id': note_id, 'fields': fields}}
+    if tags is not None:
+        params['note']['tags'] = tags
+    return _post_ankiconnect('updateNote', params)
 
 
 def _attach_picture_to_note(
@@ -83,11 +86,15 @@ def attach_picture_to_last_note(
     _attach_picture_to_note(note_id, filename, fields, data, path)
 
 
-def duplicate_fields_to_last_note(fields: Collection[str]) -> None:
+def duplicate_fields_to_last_note(
+    fields: Collection[str], duplicate_tags: bool = False
+) -> None:
     *_, second_id, last_id = _get_recently_added_note_ids()
     info = _get_note_info(second_id)
-    _update_note_fields(
-        last_id, {field: info['fields'][field]['value'] for field in fields}
+    _update_note_fields_and_tags(
+        last_id,
+        {field: info['fields'][field]['value'] for field in fields},
+        info['tags'] if duplicate_tags else None,
     )
 
 
@@ -115,6 +122,11 @@ def cli(argv: Sequence[str] | None = None) -> None:
         help='duplicate field from the second-to-last note',
     )
     parser.add_argument(
+        '--tags',
+        action='store_true',
+        help='also duplicate tags',
+    )
+    parser.add_argument(
         '--ext',
         default='png',
         help='stdin screenshot format (defaults to png)',
@@ -129,6 +141,7 @@ def cli(argv: Sequence[str] | None = None) -> None:
 
     fields = args.field
     duplicate = args.duplicate
+    duplicate_tags = args.tags
     ext = args.ext
     data = path = None
     if args.file == Path('-') and not duplicate:
@@ -142,7 +155,7 @@ def cli(argv: Sequence[str] | None = None) -> None:
 
     try:
         if duplicate:
-            duplicate_fields_to_last_note(fields)
+            duplicate_fields_to_last_note(fields, duplicate_tags)
         else:
             attach_picture_to_last_note(filename, fields, data, path)
     except Exception as err:
