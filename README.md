@@ -43,7 +43,7 @@ Where `Picture` is the image field.
 
 ```console
 $ attach_screenshot --help
-usage: attach_screenshot [-h] [-f FILE] [-d] [--ext EXT] [--notify]
+usage: attach_screenshot [-h] [-f FILE] [-d] [--tags] [--ext EXT] [--notify]
                          field [field ...]
 
 positional arguments:
@@ -53,6 +53,7 @@ options:
   -h, --help       show this help message and exit
   -f, --file FILE  file path (defaults to stdin)
   -d, --duplicate  duplicate field from the second-to-last note
+  --tags           also duplicate tags
   --ext EXT        stdin screenshot format (defaults to png)
   --notify         send a notification via notify-send
 ```
