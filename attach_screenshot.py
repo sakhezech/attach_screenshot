@@ -5,7 +5,7 @@ import json
 import subprocess
 import sys
 import urllib.request
-from collections.abc import Sequence
+from collections.abc import Collection, Sequence
 from datetime import datetime
 from pathlib import Path
 from typing import Any
@@ -45,7 +45,7 @@ def _update_note_fields(note_id: int, fields: dict[str, Any]) -> None:
 def _attach_picture_to_note(
     note_id: int,
     filename: str,
-    field: str,
+    fields: Collection[str],
     data: str | None = None,
     path: str | None = None,
 ) -> None:
@@ -65,7 +65,7 @@ def _attach_picture_to_note(
                         'filename': filename,
                         'data': data,
                         'path': path,
-                        'fields': [field],
+                        'fields': fields,
                     }
                 ],
             }
@@ -74,16 +74,21 @@ def _attach_picture_to_note(
 
 
 def attach_picture_to_last_note(
-    filename: str, field: str, data: str | None = None, path: str | None = None
+    filename: str,
+    fields: Collection[str],
+    data: str | None = None,
+    path: str | None = None,
 ) -> None:
     note_id = _get_recently_added_note_ids()[-1]
-    _attach_picture_to_note(note_id, filename, field, data, path)
+    _attach_picture_to_note(note_id, filename, fields, data, path)
 
 
-def duplicate_field_to_last_note(field: str) -> None:
+def duplicate_fields_to_last_note(fields: Collection[str]) -> None:
     *_, second_id, last_id = _get_recently_added_note_ids()
-    value = _get_note_info(second_id)['fields'][field]['value']
-    _update_note_fields(last_id, {field: value})
+    info = _get_note_info(second_id)
+    _update_note_fields(
+        last_id, {field: info['fields'][field]['value'] for field in fields}
+    )
 
 
 def read_screenshot_data() -> str:
@@ -119,10 +124,10 @@ def cli(argv: Sequence[str] | None = None) -> None:
         action='store_true',
         help='send a notification via notify-send',
     )
-    parser.add_argument('field', help='note picture field name')
+    parser.add_argument('field', nargs='+', help='note picture field name')
     args = parser.parse_args(argv)
 
-    field = args.field
+    fields = args.field
     duplicate = args.duplicate
     ext = args.ext
     data = path = None
@@ -137,9 +142,9 @@ def cli(argv: Sequence[str] | None = None) -> None:
 
     try:
         if duplicate:
-            duplicate_field_to_last_note(field)
+            duplicate_fields_to_last_note(fields)
         else:
-            attach_picture_to_last_note(filename, field, data, path)
+            attach_picture_to_last_note(filename, fields, data, path)
     except Exception as err:
         msg = ' '.join(str(v) for v in err.args) if err.args else repr(err)
         if args.notify:
