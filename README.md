@@ -43,7 +43,8 @@ Where `Picture` is the image field.
 
 ```console
 $ attach_screenshot --help
-usage: attach_screenshot [-h] [-f FILE] [-d] [--ext EXT] [--notify] field
+usage: attach_screenshot [-h] [-f FILE] [-d] [--ext EXT] [--notify]
+                         field [field ...]
 
 positional arguments:
   field            note picture field name
