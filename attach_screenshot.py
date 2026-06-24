@@ -24,7 +24,7 @@ def _post_ankiconnect(action: str, params: dict[str, Any]) -> Any:
     return r['result']
 
 
-def _get_recently_added_note_ids() -> Sequence[int]:
+def get_recently_added_note_ids() -> Sequence[int]:
     result = _post_ankiconnect('findNotes', {'query': 'added:1'})
     if not result:
         raise Exception('no recently added notes')
@@ -32,11 +32,11 @@ def _get_recently_added_note_ids() -> Sequence[int]:
     return result
 
 
-def _get_note_info(note_id: int) -> dict[str, Any]:
+def get_note_info(note_id: int) -> dict[str, Any]:
     return _post_ankiconnect('notesInfo', {'notes': [note_id]})[0]
 
 
-def _update_note_fields_and_tags(
+def update_note_fields_and_tags(
     note_id: int, fields: dict[str, Any], tags: Collection[str] | None = None
 ) -> None:
     params = {'note': {'id': note_id, 'fields': fields}}
@@ -45,7 +45,7 @@ def _update_note_fields_and_tags(
     return _post_ankiconnect('updateNote', params)
 
 
-def _attach_picture_to_note(
+def attach_picture_to_note(
     note_id: int,
     filename: str,
     fields: Collection[str],
@@ -82,27 +82,27 @@ def attach_picture_to_last_note(
     data: str | None = None,
     path: str | None = None,
 ) -> None:
-    note_id = _get_recently_added_note_ids()[-1]
-    _attach_picture_to_note(note_id, filename, fields, data, path)
+    note_id = get_recently_added_note_ids()[-1]
+    attach_picture_to_note(note_id, filename, fields, data, path)
 
 
 def duplicate_fields_to_last_note(
     fields: Collection[str], duplicate_tags: bool = False
 ) -> None:
-    *_, second_id, last_id = _get_recently_added_note_ids()
-    info = _get_note_info(second_id)
-    _update_note_fields_and_tags(
+    *_, second_id, last_id = get_recently_added_note_ids()
+    info = get_note_info(second_id)
+    update_note_fields_and_tags(
         last_id,
         {field: info['fields'][field]['value'] for field in fields},
         info['tags'] if duplicate_tags else None,
     )
 
 
-def read_screenshot_data() -> str:
+def _read_screenshot_data() -> str:
     return base64.standard_b64encode(sys.stdin.buffer.read()).decode()
 
 
-def send_notification(summary: str, body: str) -> None:
+def _send_notification(summary: str, body: str) -> None:
     subprocess.run(['notify-send', summary, body])
 
 
@@ -148,7 +148,7 @@ def cli(argv: Sequence[str] | None = None) -> None:
         filename = (
             f'Screenshot{datetime.now().strftime("%Y%m%d%H%M%S%f")}.{ext}'
         )
-        data = read_screenshot_data()
+        data = _read_screenshot_data()
     else:
         filename = args.file.name
         path = str(args.file.resolve())
@@ -161,11 +161,11 @@ def cli(argv: Sequence[str] | None = None) -> None:
     except Exception as err:
         msg = ' '.join(str(v) for v in err.args) if err.args else repr(err)
         if args.notify:
-            send_notification('ERROR', f'Screenshot not attached!\n{msg}')
+            _send_notification('ERROR', f'Screenshot not attached!\n{msg}')
         raise err
     else:
         if args.notify:
-            send_notification('SUCCESS', 'Screenshot attached!')
+            _send_notification('SUCCESS', 'Screenshot attached!')
 
 
 if __name__ == '__main__':
