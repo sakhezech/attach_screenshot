@@ -103,7 +103,7 @@ def _read_screenshot_data() -> str:
 
 
 def _send_notification(summary: str, body: str) -> None:
-    subprocess.run(['notify-send', summary, body])
+    subprocess.run(['notify-send', summary, body]).check_returncode()
 
 
 def cli(argv: Sequence[str] | None = None) -> None:
