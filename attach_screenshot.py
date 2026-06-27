@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 import argparse
 import base64
+import enum
 import json
 import subprocess
 import sys
@@ -9,6 +10,12 @@ from collections.abc import Collection, Sequence
 from datetime import datetime
 from pathlib import Path
 from typing import Any
+
+
+class AttachmentType(enum.StrEnum):
+    PICTURE = 'picture'
+    VIDEO = 'video'
+    AUDIO = 'audio'
 
 
 def _post_ankiconnect(action: str, params: dict[str, Any]) -> Any:
@@ -45,10 +52,11 @@ def update_note_fields_and_tags(
     return _post_ankiconnect('updateNote', params)
 
 
-def attach_picture_to_note(
+def attach_media_to_note(
     note_id: int,
     filename: str,
     fields: Collection[str],
+    type_: AttachmentType = AttachmentType.PICTURE,
     data: str | None = None,
     path: str | None = None,
 ) -> None:
@@ -63,7 +71,7 @@ def attach_picture_to_note(
             'note': {
                 'id': note_id,
                 'fields': {},
-                'picture': [
+                type_: [
                     {
                         'filename': filename,
                         'data': data,
@@ -76,14 +84,15 @@ def attach_picture_to_note(
     )
 
 
-def attach_picture_to_last_note(
+def attach_media_to_last_note(
     filename: str,
     fields: Collection[str],
+    type_: AttachmentType = AttachmentType.PICTURE,
     data: str | None = None,
     path: str | None = None,
 ) -> None:
     note_id = get_recently_added_note_ids()[-1]
-    attach_picture_to_note(note_id, filename, fields, data, path)
+    attach_media_to_note(note_id, filename, fields, type_, data, path)
 
 
 def duplicate_fields_to_last_note(
@@ -116,6 +125,14 @@ def cli(argv: Sequence[str] | None = None) -> None:
         help='file path (defaults to stdin)',
     )
     parser.add_argument(
+        '--type',
+        dest='type_',
+        type=AttachmentType,
+        choices=AttachmentType.__members__.values(),
+        default=AttachmentType.PICTURE,
+        help='attachment type (defaults ot picture)',
+    )
+    parser.add_argument(
         '-d',
         '--duplicate',
         action='store_true',
@@ -140,6 +157,7 @@ def cli(argv: Sequence[str] | None = None) -> None:
     args = parser.parse_args(argv)
 
     fields = args.field
+    type_ = args.type_
     duplicate = args.duplicate
     duplicate_tags = args.tags
     ext = args.ext
@@ -157,7 +175,7 @@ def cli(argv: Sequence[str] | None = None) -> None:
         if duplicate:
             duplicate_fields_to_last_note(fields, duplicate_tags)
         else:
-            attach_picture_to_last_note(filename, fields, data, path)
+            attach_media_to_last_note(filename, fields, type_, data, path)
     except Exception as err:
         msg = ' '.join(str(v) for v in err.args) if err.args else repr(err)
         if args.notify:
