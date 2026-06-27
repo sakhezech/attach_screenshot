@@ -43,19 +43,22 @@ Where `Picture` is the image field.
 
 ```console
 $ attach_screenshot --help
-usage: attach_screenshot [-h] [-f FILE] [-d] [--tags] [--ext EXT] [--notify]
+usage: attach_screenshot [-h] [-f FILE] [--type {picture,video,audio}] [-d]
+                         [--tags] [--ext EXT] [--notify]
                          field [field ...]
 
 positional arguments:
-  field            note picture field name
+  field                 target field name
 
 options:
-  -h, --help       show this help message and exit
-  -f, --file FILE  file path (defaults to stdin)
-  -d, --duplicate  duplicate field from the second-to-last note
-  --tags           also duplicate tags
-  --ext EXT        stdin screenshot format (defaults to png)
-  --notify         send a notification via notify-send
+  -h, --help            show this help message and exit
+  -f, --file FILE       file path (defaults to stdin)
+  --type {picture,video,audio}
+                        attachment type (defaults ot picture)
+  -d, --duplicate       duplicate field from the second-to-last note
+  --tags                also duplicate tags
+  --ext EXT             stdin format (defaults to png)
+  --notify              send a notification via notify-send
 ```
 
 ## Installation
