@@ -63,7 +63,7 @@ def attach_media_to_note(
     if not ((data is None) ^ (path is None)):
         raise Exception("'data' and 'path' are both set or unset")
     if data is not None and not data:
-        raise Exception('no screenshot data')
+        raise Exception('no data')
 
     _post_ankiconnect(
         'updateNoteFields',
@@ -107,7 +107,7 @@ def duplicate_fields_to_last_note(
     )
 
 
-def _read_screenshot_data() -> str:
+def _read_stdin_data() -> str:
     return base64.standard_b64encode(sys.stdin.buffer.read()).decode()
 
 
@@ -146,14 +146,14 @@ def cli(argv: Sequence[str] | None = None) -> None:
     parser.add_argument(
         '--ext',
         default='png',
-        help='stdin screenshot format (defaults to png)',
+        help='stdin format (defaults to png)',
     )
     parser.add_argument(
         '--notify',
         action='store_true',
         help='send a notification via notify-send',
     )
-    parser.add_argument('field', nargs='+', help='note picture field name')
+    parser.add_argument('field', nargs='+', help='target field name')
     args = parser.parse_args(argv)
 
     fields = args.field
@@ -164,9 +164,9 @@ def cli(argv: Sequence[str] | None = None) -> None:
     data = path = None
     if args.file == Path('-') and not duplicate:
         filename = (
-            f'Screenshot{datetime.now().strftime("%Y%m%d%H%M%S%f")}.{ext}'
+            f'{type_.title()}{datetime.now().strftime("%Y%m%d%H%M%S%f")}.{ext}'
         )
-        data = _read_screenshot_data()
+        data = _read_stdin_data()
     else:
         filename = args.file.name
         path = str(args.file.resolve())
@@ -179,11 +179,13 @@ def cli(argv: Sequence[str] | None = None) -> None:
     except Exception as err:
         msg = ' '.join(str(v) for v in err.args) if err.args else repr(err)
         if args.notify:
-            _send_notification('ERROR', f'Screenshot not attached!\n{msg}')
+            _send_notification(
+                'ERROR', f'{type_.title()} not attached!\n{msg}'
+            )
         raise err
     else:
         if args.notify:
-            _send_notification('SUCCESS', 'Screenshot attached!')
+            _send_notification('SUCCESS', f'{type_.title()} attached!')
 
 
 if __name__ == '__main__':
